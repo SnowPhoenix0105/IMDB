@@ -1,2 +1,7 @@
 *.zip
 *.ipynb
+__pycache__/
+.vscode/
+ckpoint/
+log/
+!/ckpoint/default/*

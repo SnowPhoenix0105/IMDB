@@ -13,6 +13,7 @@ class DefaultConfig:
         DATA_PUBLIC = os.path.join(DATA, "public_data")
         DATA_TRAIN_CSV = os.path.join(DATA_PUBLIC, "train.csv")
         DATA_TEST_CSV = os.path.join(DATA_PUBLIC, "test_data.csv")
+        DATA_TEMPLEMENT_CSV = os.path.join(DATA_PUBLIC, "submission.csv")
         DATA_RESULT_CSV = os.path.join(DATA, "submission.csv")
 
         CKPOINT = os.path.join(TOP, "ckpoint")
@@ -20,8 +21,10 @@ class DefaultConfig:
         LOG = os.path.join(TOP, "log")
 
     class MODEL:
-        BATCH_SIZE = 32
+        BATCH_SIZE = 128
+        CPU_BATCH_TIMES = 8
         VEC_LEN = 128
+        PCA_DIM = 512
 
     class LOG:
         DEFAULT_LOG_DIR = "default.log"
