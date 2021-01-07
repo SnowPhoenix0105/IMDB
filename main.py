@@ -3,13 +3,14 @@ from core.model.model import Model
 from core.config import config
 import os
 from train import train
+from sklearn.linear_model import Perceptron
 
 
 if __name__ == "__main__":
-    model = Model(None)
-    model.load(os.path.join(config.PATH.CKPOINT, "2021-01-01_22-08-41"))
+    # model = Model(None)
+    # model.load(os.path.join(config.PATH.CKPOINT, "2021-01-01_22-08-41"))
 
-    # model = train()
+    model = train(Perceptron())
 
     samples = loader.walk_csv(config.PATH.DATA_TEST_CSV)
     samples_it = iter(samples)

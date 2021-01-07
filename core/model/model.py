@@ -10,50 +10,18 @@ import joblib
 import os
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.decomposition import PCA
+from .embedder import Embedder
 
 class Model:
     def __init__(self, classifier=None):
-        self.pretrained_weights = "bert-base-uncased"
         self.dim_reducer = None
         self.classifier = classifier if classifier is not None else BernoulliNB()
         self.logger = alloc_logger("Model.log", Model)
 
         self.logger.log_message("loading bert...")
-        self.tokenizer = tfs.BertTokenizer.from_pretrained(self.pretrained_weights)
-        self.bert = tfs.BertModel.from_pretrained(self.pretrained_weights).cuda()
+        self.embedder = Embedder()
         self.logger.log_message("finish loading!")
         self.logger.log_message("pca_dim=", config.MODEL.PCA_DIM)
-    
-    def strs_to_tensor(self, texts: "List[str]")->torch.Tensor:
-        text_count = len(texts)
-        # self.logger.log_message("text_count=", text_count)
-
-        total_tokens = torch.zeros(size=(text_count, config.MODEL.VEC_LEN), dtype=torch.long)
-        max_text_len = config.MODEL.VEC_LEN << 2
-
-        for i in range(text_count):
-            text = texts[i]
-            if len(text) > max_text_len:
-                text = text[:max_text_len]
-            tokens = self.tokenizer.encode(text, add_special_tokens=True)
-            for j in range(min(len(tokens), config.MODEL.VEC_LEN)):
-                total_tokens[i][j] = tokens[j]
-
-        # self.logger.log_message("finish tokenization")
-        total_tokens = total_tokens.cuda()
-        attention_mask = torch.where(total_tokens != 0, 1, 0)
-        with torch.no_grad():
-            vec = self.bert(total_tokens, attention_mask)
-        # self.logger.log_message("finish word2vec")
-        del total_tokens
-        del attention_mask
-        return vec[0].cpu()
-
-    def strs_to_numpy(self, texts: "List[str]")->np.ndarray:
-        samples_count = len(texts)
-        X = self.strs_to_tensor(texts).numpy()
-        shape = X.shape
-        return X.reshape(shape[0], shape[1] * shape[2])
 
     def partial_fit(self, batch_X, batch_y):
         # print(batch_X.shape)
@@ -80,7 +48,7 @@ class Model:
         while beg < samples_count:
             end = min(beg + config.MODEL.BATCH_SIZE, samples_count)
             self.logger.log_message("word2vec[{:d}:{:d}]".format(beg, end))
-            batch_X_list.append(self.strs_to_numpy(X[beg: end]))
+            batch_X_list.append(self.embedder.strs_to_numpy(X[beg: end]))
             batch_count += 1
             beg = end
             
@@ -107,7 +75,7 @@ class Model:
         beg = 0
         while beg < samples_count:
             end = min(beg + config.MODEL.BATCH_SIZE, samples_count)
-            X = self.strs_to_numpy(samples[beg: end])
+            X = self.embedder.strs_to_numpy(samples[beg: end])
             if self.dim_reducer is not None:
                 X = self.dim_reducer.transform(X)
             Y = self.classifier.predict(X)

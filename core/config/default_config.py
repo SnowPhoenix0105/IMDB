@@ -24,7 +24,7 @@ class DefaultConfig:
         BATCH_SIZE = 128
         CPU_BATCH_TIMES = 8
         VEC_LEN = 128
-        PCA_DIM = 512
+        PCA_DIM = 768
 
     class LOG:
         DEFAULT_LOG_DIR = "default.log"
